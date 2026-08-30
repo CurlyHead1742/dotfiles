@@ -1,50 +1,56 @@
 # Dependencies
 
-## Direct core runtime
+Orbit is validated on Fedora 44 with Wayland, Hyprland `0.56.2`, and Noctalia.
+Package names can vary by enabled Fedora repositories; the groups below are
+the intended dependency boundary, not an inventory of one machine.
 
-- Fedora Hyprland, Hypridle, Hyprlock, Noctalia, and `hyprpolkitagent`.
-- `xdg-desktop-portal` and `xdg-desktop-portal-hyprland`.
-- GTK3/GTK4 and Qt6/KDE runtime components.
-- `nwg-displays` for machine-local monitor layout.
-- systemd user sessions and Wayland.
-- Bash, Python 3, `python3-pyudev`, `jq`, `socat`, `flock`, `hyprctl`,
-  `dbus-update-activation-environment`, `systemctl`, `sg`, `ps`, `grim`,
-  `slurp`, `wl-copy`, `zenity`, `canberra-gtk-play`, and `aplay` or `paplay`.
-- Kora icons and the selected GTK theme.
+## Required Fedora Runtime
 
-The directly verified Fedora providers on the reference host include:
-`hyprland`, `hypridle`, `hyprlock`, `noctalia`, `hyprpolkitagent`,
-`nwg-displays`, `xdg-desktop-portal`, `xdg-desktop-portal-hyprland`,
-`python3`, `python3-pyudev`, `jq`, `socat`, `util-linux-core`, `shadow-utils`,
-`procps-ng`, `grim`, `slurp`, `wl-clipboard`, `zenity`, `libcanberra-gtk3`,
-and `alsa-utils`. Some lower-level GTK, Qt, Wayland, and systemd libraries are
-transitive dependencies supplied by those packages.
+- `hyprland`, `hypridle`, `hyprlock`, `hyprpolkitagent`, `noctalia`, and
+  `quickshell`;
+- `xdg-desktop-portal` and `xdg-desktop-portal-hyprland`;
+- GTK3/GTK4, Qt6/KDE runtime libraries, systemd user sessions, Wayland, and
+  Kora icons or another available icon theme;
+- `nwg-displays` for the machine-local monitor layout;
+- `bash`, `python3`, `python3-pyudev`, `jq`, `socat`, `util-linux-core`,
+  `shadow-utils`, `procps-ng`, `grim`, `slurp`, `wl-clipboard`, `zenity`,
+  `libcanberra-gtk3`, and `alsa-utils`.
 
-## External runtime components
+These provide the commands used by the core launchers and user services,
+including `systemctl`, `hyprctl`, `flock`, `sg`, `ps`, `wl-copy`, and
+`canberra-gtk-play`.
 
-- QuickShell with the global-menu configuration.
-- Hyprglass, HyprWindowShade, ScrollOverview, and Dynamic Cursors plugins.
-- Orbit Wallpaper Engine.
+## Required External Projects
 
-These components are not copied into this repository. Their exact provenance
-and build instructions belong in the relevant integration documentation.
+- Hyprland and Noctalia, which remain the compositor and shell/palette owners;
+- QuickShell, which hosts Orbit's global-menu configuration;
+- the four Hyprland plugins listed in [`external-components.md`](external-components.md);
+- the independent Orbit Wallpaper Engine project. v0.1 includes an x86-64
+  runtime artifact, but its source and integration checkout remain external.
 
-## Build-only dependencies
+## Plugin Build Dependencies
 
-Only required when building retained external components:
+Required by the source-built plugin installers, not by a binary-only runtime:
 
-- `gcc-c++`, `clang`, `lld`;
-- `make`, `meson`, `cmake`, `ninja-build`, `pkgconf`, `patch`, and `git`;
-- component-specific Hyprland, wlroots, Wayland, EGL/GLES, Cairo, FreeType,
-  libpng, Pixman, and libdrm development packages.
+- `git`, `gcc-c++`, `make`, `pkgconf`, and `patch`;
+- the installed Hyprland development metadata and headers;
+- component-specific development packages: Pixman, libdrm, PangoCairo,
+  libinput, libudev, Wayland server, xkbcommon, and Lua 5.4.
 
-## Optional integration dependencies
+Hyprland plugins are ABI-sensitive. Installers fail clearly when required
+compiler or `pkg-config` dependencies are missing and warn when the running
+Hyprland commit differs from the validated reference.
 
-- Sunshine, Moonlight, and GPU Screen Recorder for streaming.
-- Steam and GameMode for game-session behavior.
-- Obsidian for the note integration.
-- Zen Browser, Zed, WezTerm, Kitty, Nautilus, and their installers for their
-  respective optional presentation integrations.
-- `nautilus-python`, `python3-gobject`, `procps-ng`, `js-jquery`, and a pinned
-  Actions For Nautilus release for Nautilus actions.
-- Plymouth script-theme packages for the optional Plymouth integration.
+## Optional Applications And Integrations
+
+- Sunshine/Moonlight and GPU Screen Recorder for streaming;
+- Steam and GameMode for game sessions;
+- Obsidian, Zen Browser, Zed, WezTerm, Kitty, and Nautilus presentation or
+  application integrations;
+- Nautilus Actions dependencies and its pinned upstream extension;
+- LocalSend;
+- Plymouth script-theme packages and privileged initramfs installation.
+
+Optional installers and machine-local requirements are documented in
+[`optional-integrations.md`](optional-integrations.md). They are not needed for
+the core Orbit session.

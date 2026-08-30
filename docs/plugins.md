@@ -1,13 +1,13 @@
 # Plugin Provenance
 
 See [`external-components.md`](external-components.md) for the complete
-provenance inventory, build procedures, ABI notes, and known reproducibility
-gaps. This file retains the short provenance table for quick reference.
+provenance inventory, build procedures, ABI notes, and update boundaries.
+This file retains the short provenance table for quick reference.
 
 Compiled plugin files are never committed. The repository should retain the
 source provenance and build procedure below.
 
-| Component | Source | Reference observed on this host | Runtime artifact |
+| Component | Source | Accepted revision | Runtime artifact |
 |---|---|---|---|
 | Hyprglass | `https://github.com/hyprnux/hyprglass.git` | `5bc835dcc909cef6980291688143048cf16942b5` | `hyprglass.so` |
 | ScrollOverview | `https://github.com/yayuuu/hyprland-scroll-overview.git` | `f9248ab6bee770e9d68813b48cc6ca12b3271254` | `libscrolloverview.so` |

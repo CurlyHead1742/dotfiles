@@ -20,6 +20,22 @@ The command does not install packages, compile external plugins, modify monitor
 configuration, or perform privileged operations. Use the dedicated documented
 install steps for those tasks.
 
+Before adoption, run `bootstrap/migrate --dry-run`. Its `--adopt` mode is the
+explicit exception to deploy's refusal-only behavior: it adopts approved
+identical or known-portable files, snapshots replaced files, and writes a
+manifest below `${XDG_STATE_HOME:-$HOME/.local/state}/orbit/migrations/`.
+Rollback uses the printed manifest:
+
+```sh
+./bootstrap/migrate --rollback \
+  "$HOME/.local/state/orbit/migrations/<timestamp>/manifest.json"
+```
+
+Rollback refuses to remove a destination that changed after adoption. Normal
+deployment creates links and enables user units, but does not start or restart
+the desktop. Start a fresh Hyprland session after deployment to load the
+configuration and plugins; a reboot is normally unnecessary.
+
 Plymouth installation and Noctalia greeter synchronization require privilege
 and are separate operations.
 
