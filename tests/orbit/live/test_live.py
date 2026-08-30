@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import time
 from pathlib import Path
@@ -60,8 +61,18 @@ def check_session_json():
 def check_noctalia_and_global_menu():
     require_session()
     processes = current_processes()
-    noctalia = [line for line in processes if "/usr/bin/noctalia" in line]
-    menu = [line for line in processes if "--config global-menu --no-duplicate" in line]
+    noctalia_name = Path(shutil.which("noctalia") or "noctalia").name
+
+    def argv(line):
+        return line.split(None, 1)[1].split()
+
+    noctalia = [line for line in processes if argv(line) and Path(argv(line)[0]).name == noctalia_name]
+    menu = [
+        line for line in processes
+        if len(argv(line)) >= 4
+        and Path(argv(line)[0]).name == "quickshell"
+        and argv(line)[1:4] == ["--config", "global-menu", "--no-duplicate"]
+    ]
     assert len(noctalia) == 1, noctalia
     assert len(menu) == 1, menu
     assert not any("orbit-shell" in line or "hyprshell" in line for line in processes)
