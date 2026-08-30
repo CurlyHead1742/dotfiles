@@ -1,5 +1,9 @@
 # Plugin Provenance
 
+See [`external-components.md`](external-components.md) for the complete
+provenance inventory, build procedures, ABI notes, and known reproducibility
+gaps. This file retains the short provenance table for quick reference.
+
 Compiled plugin files are never committed. The repository should retain the
 source provenance and build procedure below.
 
@@ -14,7 +18,7 @@ source provenance and build procedure below.
 HyprWindowShade is built by `bin/install-hyprwindowshade` and receives the
 tracked local patch. Build output is installed outside the repository.
 
-The current local Wallpaper Engine checkout has a legacy remote named
-`legacy-origin` pointing at the retired PS3 wallpaper repository. This is a
-provenance blocker for final reproducibility and must be corrected in the
-independent Wallpaper Engine project, not by copying that source here.
+The independent Wallpaper Engine checkout is maintained separately from this
+repository. Its intended `origin` is
+`https://github.com/CleanShirtUK/orbit-wallpaper-engine.git`, currently at the
+`v0.2.0` tag. Orbit does not copy that source tree here.

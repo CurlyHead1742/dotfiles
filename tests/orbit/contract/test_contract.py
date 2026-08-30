@@ -186,6 +186,7 @@ class CurrentArchitectureTests(unittest.TestCase):
         self.assertIn("orbit-wallpaper-settings", installer)
         self.assertIn("orbit-wallpaper-engine-settings.desktop", installer)
         self.assertIn("install_noctalia_integration", installer)
+        self.assertIn('ORBIT_WALLPAPER_REF:-v0.2.0', installer)
 
     def test_wallpaper_launcher_routes_through_hyprland_placement(self):
         launcher = (BIN / "orbit-wallpaper-launcher").read_text()
