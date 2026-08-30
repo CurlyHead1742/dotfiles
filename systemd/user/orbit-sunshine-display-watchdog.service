@@ -1,0 +1,10 @@
+[Unit]
+Description=Orbit Sunshine physical-display recovery watchdog
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/orbit-sunshine-display watchdog
+Restart=on-failure
+RestartSec=2s

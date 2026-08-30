@@ -1,0 +1,148 @@
+#!/usr/bin/env bash
+
+set -u
+
+usage() {
+    printf 'usage: %s {start mac|start generic|restore|status|watchdog}\n' "$0" >&2
+    exit 2
+}
+
+runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/orbit"
+state_file="$state_dir/sunshine-display.json"
+lock_file="$runtime_dir/orbit-sunshine-display.lock"
+config_file="${ORBIT_SUNSHINE_DISPLAY_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}/orbit/machine/sunshine-display.conf}"
+
+if [[ ! -r "$config_file" ]]; then
+    log="orbit-sunshine-display:"
+    printf '%s machine-local configuration is required: %s\n' "$log" "$config_file" >&2
+    exit 1
+fi
+# shellcheck disable=SC1090
+source "$config_file"
+: "${ORBIT_SUNSHINE_PRIMARY_OUTPUT:?missing ORBIT_SUNSHINE_PRIMARY_OUTPUT}"
+: "${ORBIT_SUNSHINE_SECONDARY_OUTPUT:?missing ORBIT_SUNSHINE_SECONDARY_OUTPUT}"
+: "${ORBIT_SUNSHINE_GENERIC_PRIMARY_MODE:?missing ORBIT_SUNSHINE_GENERIC_PRIMARY_MODE}"
+: "${ORBIT_SUNSHINE_GENERIC_SECONDARY_MODE:?missing ORBIT_SUNSHINE_GENERIC_SECONDARY_MODE}"
+: "${ORBIT_SUNSHINE_GENERIC_SECONDARY_POSITION:?missing ORBIT_SUNSHINE_GENERIC_SECONDARY_POSITION}"
+: "${ORBIT_SUNSHINE_MAC_PRIMARY_MODE:?missing ORBIT_SUNSHINE_MAC_PRIMARY_MODE}"
+: "${ORBIT_SUNSHINE_MAC_SECONDARY_MODE:?missing ORBIT_SUNSHINE_MAC_SECONDARY_MODE}"
+: "${ORBIT_SUNSHINE_MAC_SECONDARY_POSITION:?missing ORBIT_SUNSHINE_MAC_SECONDARY_POSITION}"
+
+mkdir -p "$state_dir" "$runtime_dir" || exit 1
+exec 9>"$lock_file" || exit 1
+
+log() { printf 'orbit-sunshine-display: %s\n' "$*" >&2; }
+
+monitors_json() {
+    hyprctl monitors -j
+}
+
+valid_physical_outputs() {
+    local monitors
+    monitors=$(monitors_json) || return 1
+    jq -e --arg primary "$ORBIT_SUNSHINE_PRIMARY_OUTPUT" \
+        --arg secondary "$ORBIT_SUNSHINE_SECONDARY_OUTPUT" \
+        '[.[] | select(.name == $primary or .name == $secondary)] | length == 2' \
+        >/dev/null <<<"$monitors"
+}
+
+apply_monitor() {
+    hyprctl keyword monitor "$1" >/dev/null
+}
+
+restore_fallback() {
+    apply_monitor "$ORBIT_SUNSHINE_PRIMARY_OUTPUT,$ORBIT_SUNSHINE_GENERIC_PRIMARY_MODE,auto,1" || true
+    apply_monitor "$ORBIT_SUNSHINE_SECONDARY_OUTPUT,$ORBIT_SUNSHINE_GENERIC_SECONDARY_MODE,$ORBIT_SUNSHINE_GENERIC_SECONDARY_POSITION,1" || true
+}
+
+remove_state() {
+    rm -f -- "$state_file"
+}
+
+restore() {
+    flock -x 9
+    if [[ -s "$state_file" ]] && jq -e '.version == 1 and (.monitors | type == "array")' \
+        >/dev/null 2>&1 <"$state_file"; then
+        local monitor
+        while IFS= read -r monitor; do
+            apply_monitor "$monitor" || log "could not restore monitor: $monitor"
+        done < <(jq -r '.monitors[] | "\(.name),\(.mode),\(.x)x\(.y),\(.scale)"' "$state_file")
+    else
+        log 'recovery state is missing or corrupt; using physical-output fallback'
+        restore_fallback
+    fi
+    remove_state
+    systemctl --user stop --no-block orbit-sunshine-display-watchdog.service >/dev/null 2>&1 || true
+    log 'restored display configuration'
+}
+
+start_profile() {
+    local profile="$1" monitors tmp
+    [[ "$profile" == mac || "$profile" == generic ]] || usage
+    flock -x 9
+    if [[ -e "$state_file" ]]; then
+        log 'a display session is already active; refusing to replace it'
+        return 1
+    fi
+    valid_physical_outputs || {
+    log "both configured physical outputs must be connected: $ORBIT_SUNSHINE_PRIMARY_OUTPUT and $ORBIT_SUNSHINE_SECONDARY_OUTPUT"
+        return 1
+    }
+    monitors=$(monitors_json) || return 1
+    tmp=$(mktemp "$state_file.tmp.XXXXXX") || return 1
+    if ! jq -c --arg profile "$profile" \
+        --arg primary "$ORBIT_SUNSHINE_PRIMARY_OUTPUT" \
+        --arg secondary "$ORBIT_SUNSHINE_SECONDARY_OUTPUT" \
+        '{version: 1, profile: $profile, monitors: [.[] | select(.name == $primary or .name == $secondary) | {name, mode: ((.width|tostring) + "x" + (.height|tostring) + "@" + (.refreshRate|tostring)), x, y, scale}]}' \
+        >"$tmp" <<<"$monitors"; then
+        rm -f "$tmp"
+        return 1
+    fi
+    mv -f "$tmp" "$state_file"
+    chmod 600 "$state_file"
+    if [[ "$profile" == mac ]]; then
+        apply_monitor "$ORBIT_SUNSHINE_PRIMARY_OUTPUT,$ORBIT_SUNSHINE_MAC_PRIMARY_MODE,0x0,1" || { restore; return 1; }
+        apply_monitor "$ORBIT_SUNSHINE_SECONDARY_OUTPUT,$ORBIT_SUNSHINE_MAC_SECONDARY_MODE,$ORBIT_SUNSHINE_MAC_SECONDARY_POSITION,1" || { restore; return 1; }
+    else
+        apply_monitor "$ORBIT_SUNSHINE_PRIMARY_OUTPUT,$ORBIT_SUNSHINE_GENERIC_PRIMARY_MODE,0x0,1" || { restore; return 1; }
+        apply_monitor "$ORBIT_SUNSHINE_SECONDARY_OUTPUT,$ORBIT_SUNSHINE_GENERIC_SECONDARY_MODE,$ORBIT_SUNSHINE_GENERIC_SECONDARY_POSITION,1" || { restore; return 1; }
+    fi
+    systemctl --user start orbit-sunshine-display-watchdog.service || {
+        log 'could not start display-session watchdog'
+        restore
+        return 1
+    }
+    log "started $profile display profile"
+}
+
+status() {
+    if [[ -s "$state_file" ]] && jq -e . >/dev/null 2>&1 <"$state_file"; then
+        jq -r '"active profile: " + .profile, (.monitors[] | "saved \(.name): \(.mode) at \(.x)x\(.y)")' "$state_file"
+    else
+        printf 'inactive\n'
+    fi
+}
+
+watchdog() {
+    while :; do
+        if [[ ! -e "$state_file" ]]; then
+            exit 0
+        fi
+        if ! systemctl --user is-active --quiet app-dev.lizardbyte.app.Sunshine.service; then
+            log 'Sunshine disappeared during an active display session'
+            "$0" restore
+            exit 0
+        fi
+        sleep 5
+    done
+}
+
+[[ $# -ge 1 ]] || usage
+case "$1" in
+    start) [[ $# == 2 ]] || usage; start_profile "$2" ;;
+    restore) [[ $# == 1 ]] || usage; restore ;;
+    status) [[ $# == 1 ]] || usage; status ;;
+    watchdog) [[ $# == 1 ]] || usage; watchdog ;;
+    *) usage ;;
+esac

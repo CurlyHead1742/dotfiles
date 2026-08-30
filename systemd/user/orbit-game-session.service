@@ -1,0 +1,12 @@
+[Unit]
+Description=Orbit explicit game-session policy reconciliation
+PartOf=hyprland-session.target
+After=hyprland-session.target orbit-wallpaper-engine.service
+Wants=orbit-wallpaper-engine.service
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/libexec/orbit-game-session reconcile
+
+[Install]
+WantedBy=hyprland-session.target

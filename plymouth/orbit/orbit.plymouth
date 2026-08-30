@@ -1,0 +1,9 @@
+[Plymouth Theme]
+Name=Orbit
+Description=Restrained Orbit boot theme with native Plymouth message callbacks
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/orbit
+ScriptFile=/usr/share/plymouth/themes/orbit/orbit.script
+ConsoleLogBackgroundColor=0x00000000

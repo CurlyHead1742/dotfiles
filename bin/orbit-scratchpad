@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+vault="${OBSIDIAN_VAULT:-$HOME/Documents/Obsidian/MainVault}"
+note="${ORBIT_OBSIDIAN_SCRATCHPAD:-$vault/Scratchpad.md}"
+
+if [[ ! -e "$note" ]]; then
+    printf '\n%.0s' {1..100} >"$note"
+fi
+exec wezterm --config-file "$HOME/.config/wezterm/orbit-notes.lua" start --always-new-process --class orbit-notes -- micro -autosave 1 -softwrap true -clipboard terminal -statusline false -ruler false -colorscheme orbit-notes "$note"

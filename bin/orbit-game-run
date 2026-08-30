@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+
+set -u
+
+if (( $# == 0 )); then
+    printf 'usage: %s <command> [args... ]\n' "$0" >&2
+    exit 2
+fi
+
+if ! command -v gamemoderun >/dev/null 2>&1; then
+    printf 'orbit-game-run: gamemoderun is not available\n' >&2
+    exit 127
+fi
+
+runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+session_dir="$runtime_dir/orbit-game-session"
+token_dir="$session_dir/tokens"
+reconciler="$HOME/.local/libexec/orbit-game-session"
+token_tmp=""
+token_path=""
+token_fd=""
+child_pid=""
+cleaned=0
+
+umask 077
+mkdir -p "$token_dir" || {
+    printf 'orbit-game-run: could not create %s\n' "$token_dir" >&2
+    exit 1
+}
+
+token_tmp="$(mktemp "$session_dir/token.XXXXXX")" || {
+    printf 'orbit-game-run: could not create a private token\n' >&2
+    exit 1
+}
+token_name="${token_tmp##*/}"
+token_path="$token_dir/$token_name"
+
+exec {token_fd}<>"$token_tmp"
+if ! flock -n "$token_fd"; then
+    printf 'orbit-game-run: could not lock token\n' >&2
+    rm -f -- "$token_tmp"
+    exit 1
+fi
+
+printf 'orbit-game-run pid=%s\n' "$$" >&"$token_fd"
+if ! mv -- "$token_tmp" "$token_path"; then
+    printf 'orbit-game-run: could not publish token\n' >&2
+    rm -f -- "$token_tmp"
+    exit 1
+fi
+token_tmp=""
+
+reconcile() {
+    if ! "$reconciler" reconcile; then
+        printf 'orbit-game-run: reconciliation failed\n' >&2
+        return 1
+    fi
+}
+
+cleanup() {
+    (( cleaned == 1 )) && return 0
+    cleaned=1
+    rm -f -- "$token_path"
+    flock -u "$token_fd" 2>/dev/null || true
+    exec {token_fd}>&- 2>/dev/null || true
+    reconcile || true
+}
+
+forward_signal() {
+    local signal_name="$1"
+    if [[ -n "$child_pid" ]] && kill -0 "$child_pid" 2>/dev/null; then
+        kill -s "$signal_name" "$child_pid" 2>/dev/null || true
+        wait "$child_pid" 2>/dev/null || true
+    fi
+}
+
+trap 'forward_signal TERM' TERM
+trap 'forward_signal INT' INT
+trap 'forward_signal HUP' HUP
+trap cleanup EXIT
+
+if ! reconcile; then
+    exit 1
+fi
+
+gamemoderun "$@" {token_fd}>&- &
+child_pid="$!"
+wait "$child_pid"
+child_status="$?"
+exit "$child_status"

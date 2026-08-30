@@ -1,0 +1,11 @@
+[Unit]
+Description=Orbit explicit game-session stale-token recovery
+PartOf=hyprland-session.target
+
+[Timer]
+Unit=orbit-game-session.service
+OnActiveSec=2min
+OnUnitActiveSec=2min
+
+[Install]
+WantedBy=hyprland-session.target
