@@ -102,7 +102,7 @@ Monitor layout is intentionally machine-local. Run:
 nwg-displays
 ```
 
-The generated `~/.config/hypr/monitors.conf` is not shipped or committed.
+The generated `~/.config/hypr/monitors.lua` is not shipped or committed.
 Orbit discovers connected monitors at runtime for semantic workspace behavior.
 Noctalia is the source of truth for colors and palette templates; do not edit
 generated color outputs as if they were Orbit inputs.
