@@ -19,6 +19,14 @@ check_link() {
     }
 }
 
+check_file() {
+    local source="$1" destination="$2"
+    [[ -f "$destination" ]] && cmp -s "$source" "$destination" || {
+        printf 'missing or incorrect deployed file: %s\n' "$destination" >&2
+        return 1
+    }
+}
+
 if [[ "$source_only" == false ]]; then
     for relative in hypr/hyprland.lua hypr/hypridle.conf hypr/hyprlock.conf \
         hypr/hyprtoolkit.conf hypr/appearance.toml \
@@ -26,6 +34,8 @@ if [[ "$source_only" == false ]]; then
         quickshell/global-menu/shell.qml kitty/kitty.conf; do
         check_link "$repo_dir/config/$relative" "$home_dir/.config/$relative"
     done
+    check_file "$repo_dir/desktop/orbit-wallpaper-engine-settings.desktop" \
+        "$home_dir/.local/share/applications/orbit-wallpaper-engine-settings.desktop"
     for source in "$repo_dir/bin"/*; do
         [[ -f "$source" ]] || continue
         case "$(basename "$source")" in

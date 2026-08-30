@@ -8,6 +8,8 @@ It:
 - symlinks authored Orbit configuration, scripts, libraries, QuickShell files,
   and user units from this repository;
 - seeds mutable Qt configuration only when the destination is absent;
+- seeds the authored Wallpaper Engine desktop launcher only when the destination
+  is absent;
 - seeds the Orbit freedesktop sound theme only when its files are absent;
 - enables core user services without starting or restarting the desktop;
 - asks Noctalia to apply templates and runs the canonical Orbit appearance

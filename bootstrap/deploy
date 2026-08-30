@@ -32,6 +32,14 @@ seed_file() {
     fi
 }
 
+verify_file() {
+    local source="$1" destination="$2"
+    [[ -f "$destination" ]] && cmp -s "$source" "$destination" || {
+        printf 'missing or incorrect deployed file: %s\n' "$destination" >&2
+        exit 1
+    }
+}
+
 install_sound_theme() {
     local source="$repo_dir/assets/sounds/Orbit" destination="$home_dir/.local/share/sounds/Orbit"
     mkdir -p "$destination/stereo"
@@ -75,6 +83,8 @@ for relative in quickshell/global-menu/* gtk-3.0/gtk.css \
 done
 
 seed_file "$repo_dir/config/qt6ct/qt6ct.conf" "$home_dir/.config/qt6ct/qt6ct.conf"
+seed_file "$repo_dir/desktop/orbit-wallpaper-engine-settings.desktop" \
+    "$home_dir/.local/share/applications/orbit-wallpaper-engine-settings.desktop"
 install_sound_theme
 
 for source in "$repo_dir/bin"/*; do
