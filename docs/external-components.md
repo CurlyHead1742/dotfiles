@@ -24,17 +24,20 @@ plugins from `~/.local/share/hyprland/plugins/` through the authored
 
 | Component | Upstream and revision | Current installation | Build/rebuild procedure | Coupling |
 |---|---|---|---|---|
-| Hyprglass | `https://github.com/hyprnux/hyprglass.git` at `5bc835dcc909cef6980291688143048cf16942b5` | `~/.local/share/hyprland/plugins/hyprglass.so` | Prefer `hyprpm add https://github.com/hyprnux/hyprglass` and `hyprpm enable hyprglass`; for an exact checkout, check out the revision and run `make`, then install `hyprglass.so` | Build against the installed Hyprland ABI; the project also publishes version-specific release artifacts |
-| ScrollOverview | `https://github.com/yayuuu/hyprland-scroll-overview.git` at `f9248ab6bee770e9d68813b48cc6ca12b3271254` | `~/.local/share/hyprland/plugins/libscrolloverview.so` | `hyprpm add https://github.com/yayuuu/hyprland-scroll-overview.git`, `hyprpm update`, then `hyprpm enable scrolloverview`; select the pinned checkout before rebuilding when exact revision control is required | Plugin API is Hyprland-version-sensitive; upstream recommends the `new-release` branch for Git Hyprland builds |
+| Hyprglass | `https://github.com/hyprnux/hyprglass.git` at `5bc835dcc909cef6980291688143048cf16942b5` | `~/.local/share/hyprland/plugins/hyprglass.so` | Run `bin/install-hyprglass`; it fetches and verifies the pinned commit in the cache, runs the upstream `make`, and installs `hyprglass.so` | Build against the installed Hyprland ABI; the installer warns when the running compositor differs from the validated reference |
+| ScrollOverview | `https://github.com/yayuuu/hyprland-scroll-overview.git` at `f9248ab6bee770e9d68813b48cc6ca12b3271254` | `~/.local/share/hyprland/plugins/libscrolloverview.so` | Run `bin/install-scrolloverview`; it fetches and verifies the pinned commit in the cache, runs the upstream production `make all`, and installs it as `libscrolloverview.so` | Plugin API is Hyprland-version-sensitive; the installer warns when the running compositor differs from the validated reference; upstream's `new-release` branch is not used |
 | HyprWindowShade | `https://github.com/ManofJELLO/HyprWindowShade.git` at `40b756befa36cfd5cbed65d554c719141a65c420` | `~/.local/share/hyprland/plugins/HyprWindowShade.so` | Run `bin/install-hyprwindowshade`; it fetches the pinned commit, applies `config/hypr/patches/hyprwindowshade-per-window-effects.patch`, and builds with the matching `/var/cache/hyprpm/$USER/headersRoot` headers | Requires Hyprland 0.56-compatible headers and the running compositor commit; the patch is Orbit-owned |
 | Dynamic Cursors | `https://github.com/virtcode/hypr-dynamic-cursors.git` at `5a224284872208b5324759d535d65061043725de` (`origin/v0.56.2`) | `~/.local/share/hyprland/plugins/dynamic-cursors.so` | Check out the pinned revision, run `make all`, and install `out/dynamic-cursors.so`; the upstream `hyprpm.toml` records the Hyprland 0.56.2 pin | x86-64 function-hook plugin; rebuild for the installed Hyprland ABI |
 
-The pinned revisions and build procedures above are sufficient to identify the
-intended inputs, but Orbit currently has no dedicated exact-revision installers
-for Hyprglass or ScrollOverview. Their installed `.so` files are therefore
-traceable to upstream and a recorded revision, but not yet reproduced by one
-Orbit command. That is a known publication follow-up, not a reason to commit
-the binaries.
+The two dedicated installers keep source and build trees under
+`$XDG_CACHE_HOME/orbit-hyprland-plugins` (or `$HOME/.cache/...`) and install
+only the resulting `.so` files under `~/.local/share/hyprland/plugins/`. They
+are safe to rerun, verify detached HEAD against the accepted revision, and do
+not enable or reload plugins in the running compositor. The installers build
+against the installed Hyprland development headers; the accepted validation
+reference is Hyprland `0.56.2-1.fc44` at commit
+`efb50993780079460b0cbed1363e2166a2de1d9f`, so compatibility beyond that ABI
+has not been established.
 
 ### HyprWindowShade Patch
 

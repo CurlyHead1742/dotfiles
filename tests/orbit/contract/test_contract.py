@@ -43,6 +43,8 @@ class CurrentArchitectureTests(unittest.TestCase):
             BIN / "orbit-theme",
             BIN / "orbit-wallpaper-control",
             BIN / "orbit-wallpaper-engine",
+            BIN / "install-hyprglass",
+            BIN / "install-scrolloverview",
             BIN / "workspace-alt-tab",
             BIN / "workspace-alt-tab-release",
             HYPR / "scripts/new-workspace-apps",
@@ -187,6 +189,42 @@ class CurrentArchitectureTests(unittest.TestCase):
         self.assertIn("orbit-wallpaper-engine-settings.desktop", installer)
         self.assertIn("install_noctalia_integration", installer)
         self.assertIn('ORBIT_WALLPAPER_REF:-v0.2.0', installer)
+
+    def test_pinned_core_plugin_installers_contract(self):
+        installers = {
+            "install-hyprglass": (
+                "https://github.com/hyprnux/hyprglass.git",
+                "5bc835dcc909cef6980291688143048cf16942b5",
+                "make",
+                "hyprglass.so",
+            ),
+            "install-scrolloverview": (
+                "https://github.com/yayuuu/hyprland-scroll-overview.git",
+                "f9248ab6bee770e9d68813b48cc6ca12b3271254",
+                "make all",
+                "libscrolloverview.so",
+            ),
+        }
+        tracked = subprocess.run(
+            ["git", "-C", str(REPO), "ls-files", "*.so"],
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout
+        self.assertEqual(tracked, "")
+        for name, (url, revision, build, output) in installers.items():
+            path = BIN / name
+            source = path.read_text()
+            self.assertTrue(os.access(path, os.X_OK), path)
+            self.assertIn(url, source)
+            self.assertIn(revision, source)
+            self.assertIn(build, source)
+            self.assertIn(output, source)
+            self.assertNotIn("origin/main", source)
+            self.assertNotIn("refs/heads/main", source)
+            self.assertIn("source_dir=", source)
+            self.assertIn("plugin_dir=", source)
+            self.assertNotIn('source_dir="$REPO', source)
 
     def test_wallpaper_launcher_routes_through_hyprland_placement(self):
         launcher = (BIN / "orbit-wallpaper-launcher").read_text()
