@@ -9,8 +9,8 @@ local home = os.getenv("HOME")
 package.path = home .. "/.config/hypr/?.lua;" .. package.path
 
 -- Application launcher paths: terminal, file manager, app menu, utility scripts.
-local terminal = "wezterm"
-local fileManager = "nautilus"
+local terminal = "kitty"
+local fileManager = "thunar"
 local launcher = "noctalia msg panel-toggle launcher"
 local chatGPT = "chatgpt"
 local openCode = terminal .. " start --class orbit-opencode -- " .. home .. "/.opencode/bin/opencode"
@@ -175,7 +175,8 @@ hl.config({
     animations = { enabled = orbitAppearance.effects.animations_enabled },
 
     input = {
-        kb_layout = "us",                      -- US keyboard layout.
+        kb_layout = "us,il",                   -- US + Hebrew keyboard layouts.
+        kb_options = "grp:alt_shift_toggle",   -- Alt+Shift to switch layouts.
         follow_mouse = orbitFollowMouse,       -- Follow mouse mode (0=off, 1=speed-1, 2=speed-2 from Orbit).
         mouse_refocus = false,                 -- Do not refocus windows when moving the mouse.
         sensitivity = 0,                       -- Mouse sensitivity (0 = use system default).
@@ -614,5 +615,3 @@ hl.layer_rule({
     blur_popups = false,
 })
 
--- For Noctalia Color templates
-require("noctalia").apply_theme()
