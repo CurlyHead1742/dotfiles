@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Switch both monitors together to a numbered "workspace group": monitor A shows
+# workspace N, monitor B shows workspace N+10, in one keypress. Ends with focus
+# back on whichever monitor was active before the switch.
+#
+# The secondary monitor's workspace keeps internal id N+10 (ids must be unique
+# compositor-wide) but is renamed to display as just "N", so both monitors'
+# bar pills show the same group number instead of a confusing N vs N+10.
+#
+# Note: hl.dsp.focus({ workspace = ..., monitor = ... }) silently no-ops when
+# both fields are combined in one call. Focus the monitor first, then the
+# workspace, as two separate dispatches.
+set -euo pipefail
+
+n=${1:?usage: workspace-group-set <1-10>}
+mon_a="HDMI-A-2"
+mon_b="HDMI-A-1"
+b_id=$((n + 10))
+
+goto() {
+    local monitor="$1" workspace="$2"
+    hyprctl dispatch --quiet "hl.dsp.focus({ monitor = \"$monitor\" })"
+    hyprctl dispatch --quiet "hl.dsp.focus({ workspace = \"$workspace\" })"
+}
+
+current=$(hyprctl activeworkspace -j | jq -r '.monitor')
+
+if [[ "$current" == "$mon_a" ]]; then
+    goto "$mon_b" "$b_id"
+    hyprctl dispatch --quiet "hl.dsp.workspace.rename({ workspace = \"$b_id\", name = \"$n\" })"
+    goto "$mon_a" "$n"
+else
+    goto "$mon_a" "$n"
+    goto "$mon_b" "$b_id"
+    hyprctl dispatch --quiet "hl.dsp.workspace.rename({ workspace = \"$b_id\", name = \"$n\" })"
+fi

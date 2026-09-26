@@ -24,6 +24,8 @@ local workspaceAltTab = home .. "/.local/bin/workspace-alt-tab"
 local moveWindowWorkspace = scripts .. "/move-window-workspace"
 local focusWorkspace = scripts .. "/focus-workspace"
 local focusDirectional = scripts .. "/focus-directional"
+local workspaceGroupSet = scripts .. "/workspace-group-set"
+local workspaceGroupMove = scripts .. "/workspace-group-move"
 
 -- Modifier key for all Hyprland keybindings.
 local mainMod = "SUPER"
@@ -400,6 +402,16 @@ end
 -- behavior of Super+Arrow and always moves one workspace up/down.
 hl.bind(mainMod .. " + Page_Up", hl.dsp.exec_cmd(focusWorkspace .. " u"))
 hl.bind(mainMod .. " + Page_Down", hl.dsp.exec_cmd(focusWorkspace .. " d"))
+
+-- Numbered workspace groups: Super+1-0 switches BOTH monitors together to that
+-- group's app set in one keypress (1-10 on HDMI-A-2, 11-20 on HDMI-A-1, paired).
+-- Super+Shift+1-0 moves the focused window into that group, staying on its
+-- current monitor. "0" maps to group 10.
+for i = 1, 10 do
+    local digit = (i == 10) and "0" or tostring(i)
+    hl.bind(mainMod .. " + " .. digit, hl.dsp.exec_cmd(workspaceGroupSet .. " " .. i))
+    hl.bind(mainMod .. " + SHIFT + " .. digit, hl.dsp.exec_cmd(workspaceGroupMove .. " " .. i))
+end
 
 -- One directional dispatcher handles intra-workspace movement, monitor edges,
 -- and workspace-hierarchy edges for all four arrows.

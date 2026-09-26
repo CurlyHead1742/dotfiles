@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Move the focused window into workspace group N, staying on the monitor it's
+# already on (monitor 0 = HDMI-A-2 -> workspace N, monitor 1 = HDMI-A-1 -> N+10,
+# displayed as "N" to match its pair on the other monitor).
+set -euo pipefail
+
+n=${1:?usage: workspace-group-move <1-10>}
+active=$(hyprctl activewindow -j)
+mon_id=$(jq -r '.monitor' <<<"$active")
+address=$(jq -r '.address' <<<"$active")
+
+if [[ "$mon_id" == "0" ]]; then
+    target="$n"
+else
+    target=$((n + 10))
+fi
+
+hyprctl dispatch --quiet "hl.dsp.window.move({ workspace = \"$target\", follow = true, window = \"address:0x${address#0x}\" })"
+
+if [[ "$target" != "$n" ]]; then
+    hyprctl dispatch --quiet "hl.dsp.workspace.rename({ workspace = \"$target\", name = \"$n\" })"
+fi
