@@ -10,9 +10,9 @@ compiled plugin `.so` files to this repository.
 The accepted reference environment uses Fedora packages:
 
 ```text
-Hyprland 0.56.2-1.fc44
+Hyprland 0.56.2-2.fc44
 Hyprland commit efb50993780079460b0cbed1363e2166a2de1d9f
-Noctalia 5.0.0~beta.9-1.fc44
+Noctalia 5.1.0-1.fc44
 ```
 
 Hyprland plugins use private compositor APIs and must be rebuilt when the
@@ -35,7 +35,7 @@ only the resulting `.so` files under `~/.local/share/hyprland/plugins/`. They
 are safe to rerun, verify detached HEAD against the accepted revision, and do
 not enable or reload plugins in the running compositor. The installers build
 against the installed Hyprland development headers; the accepted validation
-reference is Hyprland `0.56.2-1.fc44` at commit
+reference is Hyprland `0.56.2-2.fc44` at commit
 `efb50993780079460b0cbed1363e2166a2de1d9f`, so compatibility beyond that ABI
 has not been established.
 

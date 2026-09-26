@@ -12,7 +12,6 @@ package.path = home .. "/.config/hypr/?.lua;" .. package.path
 local terminal = "kitty"
 local fileManager = "thunar"
 local launcher = "noctalia msg panel-toggle launcher"
-local chatGPT = "chatgpt"
 local dailyNote = home .. "/.local/bin/orbit-daily-note"
 local scratchpad = home .. "/.local/bin/orbit-scratchpad"
 local scripts = home .. "/.config/hypr/scripts"
@@ -20,11 +19,8 @@ local gpuScreenRecorder = home .. "/.local/bin/gpu-screen-recorder-control"
 local animateLock = scripts .. "/animate-lock"
 local animateShutdown = scripts .. "/animate-shutdown"
 local workspaceAltTab = home .. "/.local/bin/workspace-alt-tab"
-local moveWindowWorkspace = scripts .. "/move-window-workspace"
 local focusWorkspace = scripts .. "/focus-workspace"
 local focusDirectional = scripts .. "/focus-directional"
-local workspaceGroupSet = scripts .. "/workspace-group-set"
-local workspaceGroupMove = scripts .. "/workspace-group-move"
 local minimizeWindow = scripts .. "/minimize-window"
 local toggleMinMax = scripts .. "/toggle-minmax.sh"
 local closeAllWindows = scripts .. "/close-all-windows"
@@ -352,50 +348,46 @@ hl.animation({ leaf = "workspacesOut", enabled = orbitAppearance.effects.animati
 hl.animation({ leaf = "zoomFactor", enabled = true, speed = 7, bezier = "quick" })
 
 -- Keybindings (main modifier: Super key)
--- Omarchy-aligned scheme. Sections and key combos follow
--- https://learn.omacom.io (The Omarchy 3 Manual) "Navigating" table where a
--- direct Hyprland equivalent exists. Omarchy's tmux/Neovim/Ghostty-specific
--- and app-specific bindings (HEY, 1Password, Typora, Grok, WhatsApp, Signal,
--- LazyDocker, CapsLock emoji layer) are skipped — those need software that
--- isn't part of this setup.
+-- Windows-intuitive scheme, authored directly from docs/DESIGN-INTENT.md
+-- rather than patched forward from the Omarchy-derived scheme that used
+-- to live here.
 
 -- Application launchers
 hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd(terminal))         -- Terminal.
-hl.bind(mainMod .. " + Q", hl.dsp.exec_cmd(terminal))              -- Terminal (kept as an alias).
-hl.bind(mainMod .. " + SHIFT + Return", hl.dsp.exec_cmd("firefox")) -- Browser.
-hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("firefox"))              -- Browser (kept as an alias).
-hl.bind(mainMod .. " + SHIFT + F", hl.dsp.exec_cmd(fileManager))   -- File manager.
-hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))           -- File manager (kept as an alias).
-hl.bind(mainMod .. " + SHIFT + A", hl.dsp.exec_cmd(chatGPT))       -- AI (ChatGPT).
-hl.bind(mainMod .. " + A", hl.dsp.exec_cmd(chatGPT))               -- AI (kept as an alias).
+hl.bind(mainMod .. " + Q", hl.dsp.exec_cmd(terminal))              -- Terminal (alias).
+hl.bind(mainMod .. " + SHIFT + Return", hl.dsp.exec_cmd("firefox")) -- Browser (alias).
+hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("firefox"))              -- Browser.
+hl.bind(mainMod .. " + SHIFT + F", hl.dsp.exec_cmd(fileManager))   -- File manager (alias).
+hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))           -- File manager.
 hl.bind(mainMod .. " + D", hl.dsp.exec_cmd(dailyNote))             -- Open today's Obsidian daily note.
 hl.bind(mainMod .. " + SHIFT + O", hl.dsp.exec_cmd(scratchpad))     -- Obsidian (permanent scratchpad note).
 hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd(launcher))          -- Application launcher.
 
 -- Window management
-hl.bind(mainMod .. " + W", hl.dsp.window.close())                                             -- Close window.
 hl.bind(mainMod .. " + C", hl.dsp.window.close())                                             -- Close window (Windows-style close key).
-hl.bind("CTRL + ALT + Delete", hl.dsp.exec_cmd(closeAllWindows))                               -- Close ALL windows (destructive, matches Omarchy).
+hl.bind("CTRL + ALT + Delete", hl.dsp.exec_cmd(closeAllWindows))                               -- Close ALL windows (destructive).
 hl.bind(mainMod .. " + T", hl.dsp.window.float({ action = "toggle" }))                         -- Toggle tiling/floating.
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo({}))                                           -- Toggle pseudo window style.
-hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" })) -- Fullscreen.
-hl.bind("ALT + Return", hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" }))  -- Fullscreen (kept as an alias).
+hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" })) -- True fullscreen (exclusive, hides bars).
+hl.bind("ALT + Return", hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" }))  -- Fullscreen (alias).
+hl.bind(mainMod .. " + M", hl.dsp.exec_cmd(toggleMinMax))                                      -- Maximize (windowed); minimize if already maximized/fullscreen.
 hl.bind(mainMod .. " + G", hl.dsp.group.toggle({}))                                            -- Toggle window grouping.
 hl.bind(mainMod .. " + ALT + G", hl.dsp.group.move_window({}))                                 -- Move window out of grouping.
 
 -- Minimize: hide to a special workspace, restore by clicking its icon in
--- Noctalia's taskbar widget. Super+S shows/hides the special workspace as an
--- overlay (Omarchy's "scratchpad" concept); Super+Alt+S sends a window there.
-hl.bind(mainMod .. " + S", hl.dsp.workspace.toggle_special({ name = "minimized" })) -- Show/hide minimized windows overlay.
-hl.bind(mainMod .. " + ALT + S", hl.dsp.exec_cmd(minimizeWindow))                   -- Minimize focused window.
-hl.bind(mainMod .. " + M", hl.dsp.exec_cmd(toggleMinMax))                           -- Smart minimize/maximize toggle (Windows-style Super+M).
+-- Noctalia's taskbar widget. Super+S peeks at the overlay of everything
+-- minimized. Hyprland's special-workspace toggle is shared across
+-- monitors by design (not fixable from this config — see
+-- docs/DESIGN-INTENT.md's deferred items).
+hl.bind(mainMod .. " + ALT + S", hl.dsp.exec_cmd(minimizeWindow))                   -- Minimize focused window to taskbar.
+hl.bind(mainMod .. " + S", hl.dsp.workspace.toggle_special({ name = "minimized" })) -- Peek: show/hide minimized windows overlay.
 
--- Alt+Tab cycles windows directly (plain window switcher, replacing the
--- ScrollOverview visual switcher that lived here before — that's still
--- available on Super+Grave if you want the visual overview back).
+-- Alt+Tab cycles windows directly (plain window switcher). Super+Grave
+-- opens the ScrollOverview visual switcher (Hyprland plugin) instead;
+-- Super+Escape closes it.
 hl.bind("ALT + TAB", hl.dsp.window.cycle_next({}))
 hl.bind("ALT + SHIFT + TAB", hl.dsp.window.cycle_next({ previous = true }))
-hl.bind(mainMod .. " + Grave", hl.dsp.exec_cmd(workspaceAltTab .. " cycle")) -- ScrollOverview visual switcher (moved here).
+hl.bind(mainMod .. " + Grave", hl.dsp.exec_cmd(workspaceAltTab .. " cycle")) -- ScrollOverview visual switcher.
 hl.bind(mainMod .. " + Escape", hl.dsp.exec_cmd(workspaceAltTab .. " close")) -- Close ScrollOverview if open.
 
 -- Session control
@@ -417,26 +409,24 @@ hl.bind("XF86AudioMute", hl.dsp.exec_cmd("noctalia msg volume-mute"))
 hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("noctalia msg brightness-up"), { repeating = true })
 hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("noctalia msg brightness-down"), { repeating = true })
 
--- System controls (Omarchy's Super+Ctrl+<letter> menu keys, mapped to the
--- equivalent GUI tools already set up in this system).
+-- System controls (Super+Ctrl+<letter> opens the matching GUI tool).
 hl.bind(mainMod .. " + CTRL + A", hl.dsp.exec_cmd("pavucontrol"))                                  -- Audio controls.
 hl.bind(mainMod .. " + CTRL + B", hl.dsp.exec_cmd("blueman-manager"))                              -- Bluetooth controls.
 hl.bind(mainMod .. " + CTRL + W", hl.dsp.exec_cmd("nm-connection-editor"))                         -- Wifi/network controls.
 hl.bind(mainMod .. " + CTRL + T", hl.dsp.exec_cmd("flatpak run io.missioncenter.MissionCenter"))   -- Activity/system monitor.
-hl.bind("CTRL + SHIFT + Escape", hl.dsp.exec_cmd("flatpak run io.missioncenter.MissionCenter"))    -- System monitor (kept as an alias).
+hl.bind("CTRL + SHIFT + Escape", hl.dsp.exec_cmd("flatpak run io.missioncenter.MissionCenter"))    -- System monitor (alias).
 
 -- Directional focus and movement
 for key, direction in pairs({ left = "l", right = "r", up = "u", down = "d" }) do
     hl.bind(mainMod .. " + " .. key, hl.dsp.exec_cmd(focusDirectional .. " " .. direction))
 end
 
--- Swap the focused window with the one in that direction (Omarchy's
--- Super+Shift+Arrow — distinct from the workspace-move it used to be here).
+-- Swap the focused window with the one in that direction.
 for key, direction in pairs({ left = "l", right = "r", up = "u", down = "d" }) do
     hl.bind(mainMod .. " + SHIFT + " .. key, hl.dsp.window.swap({ direction = direction }))
 end
 
--- Resize the active window (Omarchy's Equal/Minus scheme).
+-- Resize the active window (grow; hold to repeat).
 hl.bind(mainMod .. " + equal", hl.dsp.window.resize({ x = -40, y = 0, relative = true }), { repeating = true })        -- Grow left.
 hl.bind(mainMod .. " + minus", hl.dsp.window.resize({ x = 40, y = 0, relative = true }), { repeating = true })         -- Grow right.
 hl.bind(mainMod .. " + SHIFT + equal", hl.dsp.window.resize({ x = 0, y = 40, relative = true }), { repeating = true }) -- Grow bottom.
@@ -447,11 +437,9 @@ for key, direction in pairs({ mouse_up = "u", mouse_down = "d" }) do
     hl.bind(mainMod .. " + " .. key, hl.dsp.exec_cmd(focusWorkspace .. " " .. direction), { mouse = true })
 end
 
--- Workspace navigation: Super+1-0 jumps directly to that workspace (native,
--- plain numbered desktops — replaces the synchronized workspace-group system
--- that lived on these keys before, per explicit request to match Omarchy).
--- Super+Tab / Shift+Tab step to the next/previous workspace; Super+Shift+1-0
--- moves the focused window to that workspace.
+-- Workspace navigation: Super+1-0 jumps directly to that workspace (plain
+-- numbered desktops). Super+Tab / Shift+Tab step to the next/previous
+-- workspace; Super+Shift+1-0 moves the focused window to that workspace.
 for i = 1, 10 do
     local digit = (i == 10) and "0" or tostring(i)
     hl.bind(mainMod .. " + " .. digit, hl.dsp.focus({ workspace = tostring(i) }))
@@ -585,18 +573,6 @@ hl.window_rule({
 })
 
 -- Keep application keybind targets tiled on their current workspace.
-hl.window_rule({
-    name = "chatgpt-tiled",
-    match = { class = "^Chatgpt$" },
-    float = false,
-})
-
-hl.window_rule({
-    name = "opencode-tiled",
-    match = { class = "^orbit-opencode$" },
-    float = false,
-})
-
 hl.window_rule({
     name = "orbit-notes-tiled",
     match = { class = "^orbit-notes$" },
