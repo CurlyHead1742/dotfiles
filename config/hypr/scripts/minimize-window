@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# "Minimize" the focused window: move it to a hidden special workspace. The
+# window keeps running (still mapped) and still shows in Noctalia's taskbar
+# widget, which is the way to bring it back — click its icon there.
+set -euo pipefail
+
+address=$(hyprctl activewindow -j | jq -r '.address')
+[[ -n "$address" && "$address" != "null" ]] || exit 0
+
+hyprctl dispatch --quiet "hl.dsp.window.move({ workspace = \"special:minimized\", follow = false, window = \"address:0x${address#0x}\" })"

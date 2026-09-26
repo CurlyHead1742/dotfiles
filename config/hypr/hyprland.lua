@@ -26,6 +26,7 @@ local focusWorkspace = scripts .. "/focus-workspace"
 local focusDirectional = scripts .. "/focus-directional"
 local workspaceGroupSet = scripts .. "/workspace-group-set"
 local workspaceGroupMove = scripts .. "/workspace-group-move"
+local minimizeWindow = scripts .. "/minimize-window"
 
 -- Modifier key for all Hyprland keybindings.
 local mainMod = "SUPER"
@@ -364,6 +365,7 @@ hl.bind(mainMod .. " + Escape", hl.dsp.exec_cmd(workspaceAltTab .. " close"))   
 hl.bind(mainMod .. " + C", hl.dsp.window.close())                                             -- Close active window.
 hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))                        -- Toggle float/tile for active window.
 hl.bind("ALT + Return", hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" })) -- Toggle fullscreen.
+hl.bind(mainMod .. " + N", hl.dsp.exec_cmd(minimizeWindow))                                   -- Minimize: hide to special workspace, restore via taskbar click.
 
 -- Session control
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd(animateLock))     -- Lock screen with animation.
