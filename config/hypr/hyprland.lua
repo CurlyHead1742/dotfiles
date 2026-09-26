@@ -369,8 +369,17 @@ hl.bind(mainMod .. " + M", hl.dsp.exec_cmd(animateShutdown)) -- Shutdown session
 
 -- Screenshots and recording
 hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd([[grim -g "$(slurp)" - | wl-copy --type image/png]])) -- Screenshot (select region, copy to clipboard).
+hl.bind("Print", hl.dsp.exec_cmd([[grim - | wl-copy --type image/png]]))                                  -- Screenshot (full screen, copy to clipboard).
+hl.bind(mainMod .. " + Print", hl.dsp.exec_cmd([[mkdir -p ]] .. home .. [[/Pictures/Screenshots && grim ]] .. home .. [[/Pictures/Screenshots/screenshot-$(date +%Y%m%d-%H%M%S).png]])) -- Screenshot (full screen, save to file).
 hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd(gpuScreenRecorder .. " record"))                      -- Start GPU screen recording.
 hl.bind(mainMod .. " + SHIFT + Z", hl.dsp.exec_cmd(gpuScreenRecorder .. " replay"))                      -- Save instant replay (last 30s).
+
+-- Media keys (volume/brightness) — routed through Noctalia so the OSD shows automatically.
+hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("noctalia msg volume-up"), { repeating = true })
+hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("noctalia msg volume-down"), { repeating = true })
+hl.bind("XF86AudioMute", hl.dsp.exec_cmd("noctalia msg volume-mute"))
+hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("noctalia msg brightness-up"), { repeating = true })
+hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("noctalia msg brightness-down"), { repeating = true })
 
 -- System monitoring
 hl.bind("CTRL + SHIFT + Escape", hl.dsp.exec_cmd("flatpak run io.missioncenter.MissionCenter")) -- Open Mission Center (system monitor).
@@ -386,6 +395,11 @@ end
 for key, direction in pairs({ mouse_up = "u", mouse_down = "d" }) do
     hl.bind(mainMod .. " + " .. key, hl.dsp.exec_cmd(focusWorkspace .. " " .. direction), { mouse = true })
 end
+
+-- Dedicated pure workspace switch (keyboard-only) — skips the window-cycling
+-- behavior of Super+Arrow and always moves one workspace up/down.
+hl.bind(mainMod .. " + Page_Up", hl.dsp.exec_cmd(focusWorkspace .. " u"))
+hl.bind(mainMod .. " + Page_Down", hl.dsp.exec_cmd(focusWorkspace .. " d"))
 
 -- One directional dispatcher handles intra-workspace movement, monitor edges,
 -- and workspace-hierarchy edges for all four arrows.
@@ -615,3 +629,6 @@ hl.layer_rule({
     blur_popups = false,
 })
 
+
+-- For Noctalia Color templates
+require("noctalia").apply_theme()
