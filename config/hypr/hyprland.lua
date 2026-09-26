@@ -13,7 +13,6 @@ local terminal = "kitty"
 local fileManager = "thunar"
 local launcher = "noctalia msg panel-toggle launcher"
 local chatGPT = "chatgpt"
-local openCode = terminal .. " start --class orbit-opencode -- " .. home .. "/.opencode/bin/opencode"
 local dailyNote = home .. "/.local/bin/orbit-daily-note"
 local scratchpad = home .. "/.local/bin/orbit-scratchpad"
 local scripts = home .. "/.config/hypr/scripts"
@@ -27,6 +26,7 @@ local focusDirectional = scripts .. "/focus-directional"
 local workspaceGroupSet = scripts .. "/workspace-group-set"
 local workspaceGroupMove = scripts .. "/workspace-group-move"
 local minimizeWindow = scripts .. "/minimize-window"
+local toggleMinMax = scripts .. "/toggle-minmax.sh"
 local closeAllWindows = scripts .. "/close-all-windows"
 local moveWindowToWorkspace = scripts .. "/move-window-to-workspace"
 
@@ -368,13 +368,13 @@ hl.bind(mainMod .. " + SHIFT + F", hl.dsp.exec_cmd(fileManager))   -- File manag
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))           -- File manager (kept as an alias).
 hl.bind(mainMod .. " + SHIFT + A", hl.dsp.exec_cmd(chatGPT))       -- AI (ChatGPT).
 hl.bind(mainMod .. " + A", hl.dsp.exec_cmd(chatGPT))               -- AI (kept as an alias).
-hl.bind(mainMod .. " + S", hl.dsp.exec_cmd(openCode))              -- Open OpenCode in a dedicated terminal.
 hl.bind(mainMod .. " + D", hl.dsp.exec_cmd(dailyNote))             -- Open today's Obsidian daily note.
 hl.bind(mainMod .. " + SHIFT + O", hl.dsp.exec_cmd(scratchpad))     -- Obsidian (permanent scratchpad note).
 hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd(launcher))          -- Application launcher.
 
 -- Window management
 hl.bind(mainMod .. " + W", hl.dsp.window.close())                                             -- Close window.
+hl.bind(mainMod .. " + C", hl.dsp.window.close())                                             -- Close window (Windows-style close key).
 hl.bind("CTRL + ALT + Delete", hl.dsp.exec_cmd(closeAllWindows))                               -- Close ALL windows (destructive, matches Omarchy).
 hl.bind(mainMod .. " + T", hl.dsp.window.float({ action = "toggle" }))                         -- Toggle tiling/floating.
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo({}))                                           -- Toggle pseudo window style.
@@ -388,6 +388,7 @@ hl.bind(mainMod .. " + ALT + G", hl.dsp.group.move_window({}))                  
 -- overlay (Omarchy's "scratchpad" concept); Super+Alt+S sends a window there.
 hl.bind(mainMod .. " + S", hl.dsp.workspace.toggle_special({ name = "minimized" })) -- Show/hide minimized windows overlay.
 hl.bind(mainMod .. " + ALT + S", hl.dsp.exec_cmd(minimizeWindow))                   -- Minimize focused window.
+hl.bind(mainMod .. " + M", hl.dsp.exec_cmd(toggleMinMax))                           -- Smart minimize/maximize toggle (Windows-style Super+M).
 
 -- Alt+Tab cycles windows directly (plain window switcher, replacing the
 -- ScrollOverview visual switcher that lived here before — that's still

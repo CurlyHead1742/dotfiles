@@ -9,4 +9,4 @@ if [[ ! -e "$note" ]]; then
     printf '# %s\n\n' "$(date '+%A, %-d %B %Y')" >"$note"
     printf '\n%.0s' {1..80} >>"$note"
 fi
-exec wezterm --config-file "$HOME/.config/wezterm/orbit-notes.lua" start --always-new-process --class orbit-notes -- micro -autosave 1 -softwrap true -clipboard terminal -statusline false -ruler false -colorscheme orbit-notes "$note"
+exec kitty --class orbit-notes -- micro -autosave 1 -softwrap true -clipboard terminal -statusline false -ruler false -colorscheme orbit-notes "$note"
