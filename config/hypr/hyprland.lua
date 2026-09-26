@@ -352,6 +352,8 @@ hl.animation({ leaf = "zoomFactor", enabled = true, speed = 7, bezier = "quick" 
 -- Keybindings (main modifier: Super key)
 -- Application launchers
 hl.bind(mainMod .. " + Q", hl.dsp.exec_cmd(terminal))              -- Open terminal (wezterm).
+hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd(terminal))         -- Open terminal (alternate key).
+hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("firefox"))             -- Open browser.
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))           -- Open file manager (nautilus).
 hl.bind(mainMod .. " + A", hl.dsp.exec_cmd(chatGPT))               -- Open ChatGPT.
 hl.bind(mainMod .. " + S", hl.dsp.exec_cmd(openCode))              -- Open OpenCode in a dedicated terminal.
@@ -366,10 +368,11 @@ hl.bind(mainMod .. " + C", hl.dsp.window.close())                               
 hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))                        -- Toggle float/tile for active window.
 hl.bind("ALT + Return", hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" })) -- Toggle fullscreen.
 hl.bind(mainMod .. " + N", hl.dsp.exec_cmd(minimizeWindow))                                   -- Minimize: hide to special workspace, restore via taskbar click.
+hl.bind(mainMod .. " + M", hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" })) -- Maximize (same as Alt+Return, easier to remember).
 
 -- Session control
-hl.bind(mainMod .. " + L", hl.dsp.exec_cmd(animateLock))     -- Lock screen with animation.
-hl.bind(mainMod .. " + M", hl.dsp.exec_cmd(animateShutdown)) -- Shutdown session with animation.
+hl.bind(mainMod .. " + L", hl.dsp.exec_cmd(animateLock))             -- Lock screen with animation.
+hl.bind(mainMod .. " + SHIFT + M", hl.dsp.exec_cmd(animateShutdown)) -- Shutdown session with animation (moved off Super+M).
 
 -- Screenshots and recording
 hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd([[grim -g "$(slurp)" - | wl-copy --type image/png]])) -- Screenshot (select region, copy to clipboard).
