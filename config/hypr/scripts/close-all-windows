@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Close every open window (Omarchy's Ctrl+Alt+Del). Destructive — closes
+# everything with no confirmation, matching Omarchy's own behavior.
+set -euo pipefail
+
+hyprctl clients -j | jq -r '.[].address' | while read -r addr; do
+    hyprctl dispatch --quiet "hl.dsp.window.close({ window = \"address:0x${addr#0x}\" })" || true
+done

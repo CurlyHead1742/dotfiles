@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Move the focused window to workspace N (plain numbered desktop). Used by
+# Super+Shift+1-0.
+set -euo pipefail
+
+n=${1:?usage: move-window-to-workspace <1-10>}
+address=$(hyprctl activewindow -j | jq -r '.address')
+[[ -n "$address" && "$address" != "null" ]] || exit 0
+
+hyprctl dispatch --quiet "hl.dsp.window.move({ workspace = \"$n\", follow = true, window = \"address:0x${address#0x}\" })"

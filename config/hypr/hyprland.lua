@@ -27,6 +27,8 @@ local focusDirectional = scripts .. "/focus-directional"
 local workspaceGroupSet = scripts .. "/workspace-group-set"
 local workspaceGroupMove = scripts .. "/workspace-group-move"
 local minimizeWindow = scripts .. "/minimize-window"
+local closeAllWindows = scripts .. "/close-all-windows"
+local moveWindowToWorkspace = scripts .. "/move-window-to-workspace"
 
 -- Modifier key for all Hyprland keybindings.
 local mainMod = "SUPER"
@@ -350,36 +352,62 @@ hl.animation({ leaf = "workspacesOut", enabled = orbitAppearance.effects.animati
 hl.animation({ leaf = "zoomFactor", enabled = true, speed = 7, bezier = "quick" })
 
 -- Keybindings (main modifier: Super key)
+-- Omarchy-aligned scheme. Sections and key combos follow
+-- https://learn.omacom.io (The Omarchy 3 Manual) "Navigating" table where a
+-- direct Hyprland equivalent exists. Omarchy's tmux/Neovim/Ghostty-specific
+-- and app-specific bindings (HEY, 1Password, Typora, Grok, WhatsApp, Signal,
+-- LazyDocker, CapsLock emoji layer) are skipped — those need software that
+-- isn't part of this setup.
+
 -- Application launchers
-hl.bind(mainMod .. " + Q", hl.dsp.exec_cmd(terminal))              -- Open terminal (wezterm).
-hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd(terminal))         -- Open terminal (alternate key).
-hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("firefox"))             -- Open browser.
-hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))           -- Open file manager (nautilus).
-hl.bind(mainMod .. " + A", hl.dsp.exec_cmd(chatGPT))               -- Open ChatGPT.
+hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd(terminal))         -- Terminal.
+hl.bind(mainMod .. " + Q", hl.dsp.exec_cmd(terminal))              -- Terminal (kept as an alias).
+hl.bind(mainMod .. " + SHIFT + Return", hl.dsp.exec_cmd("firefox")) -- Browser.
+hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("firefox"))              -- Browser (kept as an alias).
+hl.bind(mainMod .. " + SHIFT + F", hl.dsp.exec_cmd(fileManager))   -- File manager.
+hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))           -- File manager (kept as an alias).
+hl.bind(mainMod .. " + SHIFT + A", hl.dsp.exec_cmd(chatGPT))       -- AI (ChatGPT).
+hl.bind(mainMod .. " + A", hl.dsp.exec_cmd(chatGPT))               -- AI (kept as an alias).
 hl.bind(mainMod .. " + S", hl.dsp.exec_cmd(openCode))              -- Open OpenCode in a dedicated terminal.
 hl.bind(mainMod .. " + D", hl.dsp.exec_cmd(dailyNote))             -- Open today's Obsidian daily note.
-hl.bind(mainMod .. " + SHIFT + D", hl.dsp.exec_cmd(scratchpad))     -- Open the permanent Obsidian scratchpad.
-hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd(launcher))          -- Open the Noctalia launcher.
-hl.bind("ALT + TAB", hl.dsp.exec_cmd(workspaceAltTab .. " cycle")) -- Workspace-oriented ScrollOverview switcher.
+hl.bind(mainMod .. " + SHIFT + O", hl.dsp.exec_cmd(scratchpad))     -- Obsidian (permanent scratchpad note).
+hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd(launcher))          -- Application launcher.
 
 -- Window management
-hl.bind(mainMod .. " + Escape", hl.dsp.exec_cmd(workspaceAltTab .. " close"))                 -- Close ScrollOverview if open.
-hl.bind(mainMod .. " + C", hl.dsp.window.close())                                             -- Close active window.
-hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))                        -- Toggle float/tile for active window.
-hl.bind("ALT + Return", hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" })) -- Toggle fullscreen.
-hl.bind(mainMod .. " + N", hl.dsp.exec_cmd(minimizeWindow))                                   -- Minimize: hide to special workspace, restore via taskbar click.
-hl.bind(mainMod .. " + M", hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" })) -- Maximize (same as Alt+Return, easier to remember).
+hl.bind(mainMod .. " + W", hl.dsp.window.close())                                             -- Close window.
+hl.bind("CTRL + ALT + Delete", hl.dsp.exec_cmd(closeAllWindows))                               -- Close ALL windows (destructive, matches Omarchy).
+hl.bind(mainMod .. " + T", hl.dsp.window.float({ action = "toggle" }))                         -- Toggle tiling/floating.
+hl.bind(mainMod .. " + P", hl.dsp.window.pseudo({}))                                           -- Toggle pseudo window style.
+hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" })) -- Fullscreen.
+hl.bind("ALT + Return", hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" }))  -- Fullscreen (kept as an alias).
+hl.bind(mainMod .. " + G", hl.dsp.group.toggle({}))                                            -- Toggle window grouping.
+hl.bind(mainMod .. " + ALT + G", hl.dsp.group.move_window({}))                                 -- Move window out of grouping.
+
+-- Minimize: hide to a special workspace, restore by clicking its icon in
+-- Noctalia's taskbar widget. Super+S shows/hides the special workspace as an
+-- overlay (Omarchy's "scratchpad" concept); Super+Alt+S sends a window there.
+hl.bind(mainMod .. " + S", hl.dsp.workspace.toggle_special({ name = "minimized" })) -- Show/hide minimized windows overlay.
+hl.bind(mainMod .. " + ALT + S", hl.dsp.exec_cmd(minimizeWindow))                   -- Minimize focused window.
+
+-- Alt+Tab cycles windows directly (plain window switcher, replacing the
+-- ScrollOverview visual switcher that lived here before — that's still
+-- available on Super+Grave if you want the visual overview back).
+hl.bind("ALT + TAB", hl.dsp.window.cycle_next({}))
+hl.bind("ALT + SHIFT + TAB", hl.dsp.window.cycle_next({ previous = true }))
+hl.bind(mainMod .. " + Grave", hl.dsp.exec_cmd(workspaceAltTab .. " cycle")) -- ScrollOverview visual switcher (moved here).
+hl.bind(mainMod .. " + Escape", hl.dsp.exec_cmd(workspaceAltTab .. " close")) -- Close ScrollOverview if open.
 
 -- Session control
-hl.bind(mainMod .. " + L", hl.dsp.exec_cmd(animateLock))             -- Lock screen with animation.
-hl.bind(mainMod .. " + SHIFT + M", hl.dsp.exec_cmd(animateShutdown)) -- Shutdown session with animation (moved off Super+M).
+hl.bind(mainMod .. " + CTRL + L", hl.dsp.exec_cmd(animateLock))      -- Lock screen with animation.
+hl.bind(mainMod .. " + SHIFT + M", hl.dsp.exec_cmd(animateShutdown)) -- Shutdown session with animation.
 
--- Screenshots and recording
+-- Screenshots, recording, and color picker
 hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd([[grim -g "$(slurp)" - | wl-copy --type image/png]])) -- Screenshot (select region, copy to clipboard).
 hl.bind("Print", hl.dsp.exec_cmd([[grim - | wl-copy --type image/png]]))                                  -- Screenshot (full screen, copy to clipboard).
-hl.bind(mainMod .. " + Print", hl.dsp.exec_cmd([[mkdir -p ]] .. home .. [[/Pictures/Screenshots && grim ]] .. home .. [[/Pictures/Screenshots/screenshot-$(date +%Y%m%d-%H%M%S).png]])) -- Screenshot (full screen, save to file).
-hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd(gpuScreenRecorder .. " record"))                      -- Start GPU screen recording.
-hl.bind(mainMod .. " + SHIFT + Z", hl.dsp.exec_cmd(gpuScreenRecorder .. " replay"))                      -- Save instant replay (last 30s).
+hl.bind("ALT + Print", hl.dsp.exec_cmd(gpuScreenRecorder .. " record"))                                   -- Screen recording (start/stop).
+hl.bind(mainMod .. " + Print", hl.dsp.exec_cmd("hyprpicker -a"))                                          -- Color picker (copies hex to clipboard).
+hl.bind(mainMod .. " + SHIFT + Print", hl.dsp.exec_cmd([[mkdir -p ]] .. home .. [[/Pictures/Screenshots && grim ]] .. home .. [[/Pictures/Screenshots/screenshot-$(date +%Y%m%d-%H%M%S).png]])) -- Screenshot (full screen, save to file — moved off Super+Print).
+hl.bind(mainMod .. " + SHIFT + Z", hl.dsp.exec_cmd(gpuScreenRecorder .. " replay"))                       -- Save instant replay (last 30s).
 
 -- Media keys (volume/brightness) — routed through Noctalia so the OSD shows automatically.
 hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("noctalia msg volume-up"), { repeating = true })
@@ -388,42 +416,50 @@ hl.bind("XF86AudioMute", hl.dsp.exec_cmd("noctalia msg volume-mute"))
 hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("noctalia msg brightness-up"), { repeating = true })
 hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("noctalia msg brightness-down"), { repeating = true })
 
--- System monitoring
-hl.bind("CTRL + SHIFT + Escape", hl.dsp.exec_cmd("flatpak run io.missioncenter.MissionCenter")) -- Open Mission Center (system monitor).
+-- System controls (Omarchy's Super+Ctrl+<letter> menu keys, mapped to the
+-- equivalent GUI tools already set up in this system).
+hl.bind(mainMod .. " + CTRL + A", hl.dsp.exec_cmd("pavucontrol"))                                  -- Audio controls.
+hl.bind(mainMod .. " + CTRL + B", hl.dsp.exec_cmd("blueman-manager"))                              -- Bluetooth controls.
+hl.bind(mainMod .. " + CTRL + W", hl.dsp.exec_cmd("nm-connection-editor"))                         -- Wifi/network controls.
+hl.bind(mainMod .. " + CTRL + T", hl.dsp.exec_cmd("flatpak run io.missioncenter.MissionCenter"))   -- Activity/system monitor.
+hl.bind("CTRL + SHIFT + Escape", hl.dsp.exec_cmd("flatpak run io.missioncenter.MissionCenter"))    -- System monitor (kept as an alias).
 
--- Placement diagnostics
-
--- Directional focus shares monitor geometry with Super+Shift+Arrow movement.
+-- Directional focus and movement
 for key, direction in pairs({ left = "l", right = "r", up = "u", down = "d" }) do
     hl.bind(mainMod .. " + " .. key, hl.dsp.exec_cmd(focusDirectional .. " " .. direction))
 end
+
+-- Swap the focused window with the one in that direction (Omarchy's
+-- Super+Shift+Arrow — distinct from the workspace-move it used to be here).
+for key, direction in pairs({ left = "l", right = "r", up = "u", down = "d" }) do
+    hl.bind(mainMod .. " + SHIFT + " .. key, hl.dsp.window.swap({ direction = direction }))
+end
+
+-- Resize the active window (Omarchy's Equal/Minus scheme).
+hl.bind(mainMod .. " + equal", hl.dsp.window.resize({ x = -40, y = 0, relative = true }), { repeating = true })        -- Grow left.
+hl.bind(mainMod .. " + minus", hl.dsp.window.resize({ x = 40, y = 0, relative = true }), { repeating = true })         -- Grow right.
+hl.bind(mainMod .. " + SHIFT + equal", hl.dsp.window.resize({ x = 0, y = 40, relative = true }), { repeating = true }) -- Grow bottom.
+hl.bind(mainMod .. " + SHIFT + minus", hl.dsp.window.resize({ x = 0, y = -40, relative = true }), { repeating = true }) -- Grow top.
 
 -- Scroll wheel on window also focuses vertically (when mouse is over the window).
 for key, direction in pairs({ mouse_up = "u", mouse_down = "d" }) do
     hl.bind(mainMod .. " + " .. key, hl.dsp.exec_cmd(focusWorkspace .. " " .. direction), { mouse = true })
 end
 
--- Dedicated pure workspace switch (keyboard-only) — skips the window-cycling
--- behavior of Super+Arrow and always moves one workspace up/down.
-hl.bind(mainMod .. " + Page_Up", hl.dsp.exec_cmd(focusWorkspace .. " u"))
-hl.bind(mainMod .. " + Page_Down", hl.dsp.exec_cmd(focusWorkspace .. " d"))
-
--- Numbered workspace groups: Super+1-0 switches BOTH monitors together to that
--- group's app set in one keypress (1-10 on HDMI-A-2, 11-20 on HDMI-A-1, paired).
--- Super+Shift+1-0 moves the focused window into that group, staying on its
--- current monitor. "0" maps to group 10.
+-- Workspace navigation: Super+1-0 jumps directly to that workspace (native,
+-- plain numbered desktops — replaces the synchronized workspace-group system
+-- that lived on these keys before, per explicit request to match Omarchy).
+-- Super+Tab / Shift+Tab step to the next/previous workspace; Super+Shift+1-0
+-- moves the focused window to that workspace.
 for i = 1, 10 do
     local digit = (i == 10) and "0" or tostring(i)
-    hl.bind(mainMod .. " + " .. digit, hl.dsp.exec_cmd(workspaceGroupSet .. " " .. i))
-    hl.bind(mainMod .. " + SHIFT + " .. digit, hl.dsp.exec_cmd(workspaceGroupMove .. " " .. i))
+    hl.bind(mainMod .. " + " .. digit, hl.dsp.focus({ workspace = tostring(i) }))
+    hl.bind(mainMod .. " + SHIFT + " .. digit, hl.dsp.exec_cmd(moveWindowToWorkspace .. " " .. i))
 end
-
--- One directional dispatcher handles intra-workspace movement, monitor edges,
--- and workspace-hierarchy edges for all four arrows.
-for key, direction in pairs({ left = "l", right = "r", up = "u", down = "d" }) do
-    hl.bind(mainMod .. " + SHIFT + " .. key, hl.dsp.exec_cmd(moveWindowWorkspace .. " " .. direction),
-        { repeating = true })
-end
+hl.bind(mainMod .. " + Tab", hl.dsp.exec_cmd(focusWorkspace .. " d"))
+hl.bind(mainMod .. " + SHIFT + Tab", hl.dsp.exec_cmd(focusWorkspace .. " u"))
+hl.bind(mainMod .. " + Page_Up", hl.dsp.exec_cmd(focusWorkspace .. " u"))   -- Kept as an alias.
+hl.bind(mainMod .. " + Page_Down", hl.dsp.exec_cmd(focusWorkspace .. " d")) -- Kept as an alias.
 
 -- Resize active window: SUPER + CTRL + arrow keys. Repeating = hold to continuously resize.
 -- Delta values: ±40 pixels per key press (relative resizing).
