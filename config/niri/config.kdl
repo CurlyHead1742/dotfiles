@@ -384,6 +384,25 @@ window-rule {
     clip-to-geometry true
 }
 
+// Xwayland Video Bridge (org.kde.xwaylandvideobridge autostart entry,
+// survived the Plasma removal) is a KDE-authored background helper for
+// X11 screen-share/recording tools. It's meant to run invisibly
+// (NoDisplay=true in its .desktop file) but niri tiles every mapped
+// window, so without this rule it shows up as a visible empty column
+// and as a fake source in screen-capture pickers. Niri has no true
+// "hidden" window-rule directive (checked the full property list in
+// Configuration:-Window-Rules.md) - this is the closest replication of
+// KDE's NoDisplay behavior: floating (out of tiling), never focused,
+// fully transparent. The app itself keeps running in the background
+// unaffected, so X11 screen-sharing still works when actually needed.
+window-rule {
+    match app-id="xwaylandvideobridge"
+
+    open-floating true
+    open-focused false
+    opacity 0.0
+}
+
 binds {
     // Keys consist of modifiers separated by + signs, followed by an XKB key name
     // in the end. To find an XKB name for a particular key, you may use a program
