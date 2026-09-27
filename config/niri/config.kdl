@@ -21,8 +21,6 @@ input {
             // localectl set-x11-keymap.
             layout "us,il"
             options "grp:alt_shift_toggle"
-            layout "us,il"
-            options "grp:alt_shift_toggle"
         }
 
         // Enable numlock on startup, omitting this setting disables it.
