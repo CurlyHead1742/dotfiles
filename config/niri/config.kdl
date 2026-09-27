@@ -113,7 +113,7 @@ input {
 // https://niri-wm.github.io/niri/Configuration:-Layout
 layout {
     // Set gaps around windows in logical pixels.
-    gaps 16
+    gaps 10
 
     // When to center a column when changing focus, options are:
     // - "never", default behavior, focusing an off-screen column will keep at the left
@@ -168,6 +168,10 @@ layout {
         // - RGB hex: "#rgb", "#rgba", "#rrggbb", "#rrggbbaa"
         // - CSS-like notation: "rgb(255, 127, 0)", rgba(), hsl() and a few others.
 
+        // Disabled in favor of the always-visible `border` below, matching
+        // Orbit's Hyprland border model (every window bordered, colored by focus).
+        off
+
         // Color of the ring on the active monitor.
         active-color "#7fc8ff"
 
@@ -197,9 +201,13 @@ layout {
     border {
         // The settings are the same as for the focus ring.
         // If you enable the border, you probably want to disable the focus ring.
-        off
 
-        width 4
+        // Matches Orbit's Hyprland border_size (config/hypr/hyprland.lua).
+        width 2
+
+        // Colors below are overridden by Noctalia's generated
+        // niri/noctalia.kdl (included at the bottom of this file) —
+        // active-color/inactive-color/urgent-color here are just fallbacks.
         active-color "#ffc87f"
         inactive-color "#505050"
 
@@ -304,6 +312,37 @@ animations {
 
     // Slow down all animations by this factor. Values below 1 speed them up instead.
     // slowdown 3.0
+
+    // Approximating Orbit's Hyprland feel (config/hypr/hyprland.lua). Niri has
+    // no blur — Hyprglass's glass/blur effects have no equivalent here at all.
+    // Hyprland's windowsIn is fade-only (no scale/slide); niri's window-open
+    // animates the whole transform, so this is a fast approximation, not a
+    // true fade-only match.
+    window-open {
+        duration-ms 120
+        curve "ease-out-expo"
+    }
+
+    // Hyprland's windowsOut is a fast (speed=2.95) slide-out; niri's
+    // window-close only supports easing (no spring), so matching via a
+    // short, fast ease-out duration instead of true slide+spring physics.
+    window-close {
+        duration-ms 120
+        curve "ease-out-quad"
+    }
+
+    // Hyprland's windowsMove/resize use spring stiffness=360 dampening=22
+    // mass=1, which computes to a damping ratio of ~0.58 (slightly bouncy).
+    // Reusing niri's own stiffness range (its raw units aren't guaranteed
+    // equivalent to Hyprland's) with a matching damping-ratio for the same
+    // slight-bounce feel.
+    window-movement {
+        spring damping-ratio=0.6 stiffness=800 epsilon=0.0001
+    }
+
+    window-resize {
+        spring damping-ratio=0.6 stiffness=800 epsilon=0.0001
+    }
 }
 
 // Window rules let you adjust behavior for individual windows.
@@ -341,10 +380,10 @@ window-rule {
     // block-out-from "screencast"
 }
 
-// Example: enable rounded corners for all windows.
-// (This example rule is commented out with a "/-" in front.)
-/-window-rule {
-    geometry-corner-radius 12
+// Rounded corners for all windows, matching Orbit's Hyprland
+// corner_radius (config/hypr/appearance.toml, [shape].corner_radius).
+window-rule {
+    geometry-corner-radius 11
     clip-to-geometry true
 }
 
@@ -635,3 +674,5 @@ binds {
     Mod+Shift+P { power-off-monitors; }
 }
 spawn-at-startup "/usr/bin/noctalia"
+
+include "noctalia.kdl"
