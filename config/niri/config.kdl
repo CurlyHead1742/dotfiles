@@ -692,7 +692,15 @@ binds {
     // Powers off the monitors. To turn them back on, do any input like
     // moving the mouse or pressing any other key.
     Mod+Shift+P { power-off-monitors; }
+
+    // Clipboard history (cliphist + fuzzel).
+    Mod+Alt+V hotkey-overlay-title="Clipboard History" { spawn "sh" "-c" "cliphist list | fuzzel --dmenu | cliphist decode | wl-copy"; }
+
+    // Clipboard history with delete/wipe (rofi, Ctrl+Delete / Alt+Delete).
+    Mod+Alt+Shift+V hotkey-overlay-title="Clipboard Manager (rofi)" { spawn "sh" "-c" "$HOME/.config/hypr/scripts/ClipManager.sh"; }
 }
+spawn-at-startup "sh" "-c" "wl-paste --type text --watch cliphist store"
+spawn-at-startup "sh" "-c" "wl-paste --type image --watch cliphist store"
 spawn-at-startup "/usr/bin/noctalia"
 
 include "monitors.kdl"
