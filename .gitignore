@@ -2,6 +2,8 @@
 config/orbit/machine/*.conf
 config/hypr/monitors.lua
 config/hypr/*-colors.conf
+config/niri/noctalia.kdl
+config/niri/monitors.kdl
 config/orbit/generated/
 *.so
 **/__pycache__/
